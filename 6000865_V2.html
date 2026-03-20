@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+<meta charset="UTF-8">
+<title>Triángulos - DDA y Bresenham</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f6f8;
+text-align:center;
+}
+
+.container{
+display:flex;
+justify-content:center;
+gap:30px;
+margin-top:20px;
+}
+
+.panel{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+canvas{
+border:2px solid #444;
+background:white;
+}
+
+input{
+width:60px;
+padding:5px;
+margin:3px;
+}
+
+button{
+padding:10px 15px;
+margin-top:10px;
+border:none;
+background:#1976d2;
+color:white;
+border-radius:5px;
+cursor:pointer;
+}
+
+button:hover{
+background:#125ea8;
+}
+
+select{
+padding:5px;
+}
+
+#mensaje{
+font-weight:bold;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Visualizador de Triángulos</h2>
+
+<div class="container">
+
+<div class="panel">
+
+<h3>Coordenadas</h3>
+
+<p>Punto A</p>
+x <input id="x1">
+y <input id="y1">
+
+<p>Punto B</p>
+x <input id="x2">
+y <input id="y2">
+
+<p>Punto C</p>
+x <input id="x3">
+y <input id="y3">
+
+<br><br>
+
+Algoritmo
+
+<select id="method">
+<option value="dda">DDA</option>
+<option value="bresenham">Bresenham</option>
+</select>
+
+<br><br>
+
+<button onclick="dibujar()">Dibujar</button>
+<button onclick="limpiar()">Limpiar</button>
+
+<p id="mensaje"></p>
+
+</div>
+
+<div class="panel">
+
+<canvas id="canvas" width="600" height="600"></canvas>
+
+</div>
+
+</div>
+
+<script>
+
+const canvas = document.getElementById("canvas")
+const ctx = canvas.getContext("2d")
+
+const escala = 25
+const origenX = canvas.width/2
+const origenY = canvas.height/2
+
+
+/*-----------------------------------------
+Dibuja un punto en el canvas
+-----------------------------------------*/
+function drawPoint(ctx,x,y,size,color="red"){
+
+ctx.fillStyle=color
+ctx.fillRect(x-size/2,y-size/2,size,size)
+
+}
+
+
+/*-----------------------------------------
+Convierte coordenadas cartesianas a canvas
+-----------------------------------------*/
+function cartesianToCanvas(x,y){
+
+return {
+x: origenX + x*escala,
+y: origenY - y*escala
+}
+
+}
+
+
+/*-----------------------------------------
+Dibuja grid cartesiano
+-----------------------------------------*/
+function drawGrid(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+ctx.strokeStyle="#ddd"
+
+for(let x=0;x<canvas.width;x+=escala){
+
+ctx.beginPath()
+ctx.moveTo(x,0)
+ctx.lineTo(x,canvas.height)
+ctx.stroke()
+
+}
+
+for(let y=0;y<canvas.height;y+=escala){
+
+ctx.beginPath()
+ctx.moveTo(0,y)
+ctx.lineTo(canvas.width,y)
+ctx.stroke()
+
+}
+
+/* ejes */
+
+ctx.strokeStyle="#000"
+ctx.lineWidth=2
+
+ctx.beginPath()
+ctx.moveTo(0,origenY)
+ctx.lineTo(canvas.width,origenY)
+ctx.stroke()
+
+ctx.beginPath()
+ctx.moveTo(origenX,0)
+ctx.lineTo(origenX,canvas.height)
+ctx.stroke()
+
+ctx.lineWidth=1
+
+/* números */
+
+ctx.fillStyle="#000"
+ctx.font="10px Arial"
+
+for(let i=-10;i<=10;i++){
+
+ctx.fillText(i,origenX+i*escala,origenY+12)
+ctx.fillText(i,origenX+4,origenY-i*escala)
+
+}
+
+}
+
+
+/*-----------------------------------------
+Algoritmo DDA
+Incrementa la línea proporcionalmente
+-----------------------------------------*/
+function drawDDA(x1,y1,x2,y2){
+
+let dx=x2-x1
+let dy=y2-y1
+
+let steps=Math.max(Math.abs(dx),Math.abs(dy))
+
+let xInc=dx/steps
+let yInc=dy/steps
+
+let x=x1
+let y=y1
+
+for(let i=0;i<=steps;i++){
+
+drawPoint(ctx,x,y,3,"blue")
+
+x+=xInc
+y+=yInc
+
+}
+
+}
+
+
+/*-----------------------------------------
+Algoritmo Bresenham
+Usa solo enteros para mayor eficiencia
+-----------------------------------------*/
+function drawBresenham(x1,y1,x2,y2){
+
+let dx=Math.abs(x2-x1)
+let dy=Math.abs(y2-y1)
+
+let sx=(x1<x2)?1:-1
+let sy=(y1<y2)?1:-1
+
+let err=dx-dy
+
+while(true){
+
+drawPoint(ctx,x1,y1,3,"green")
+
+if(x1===x2 && y1===y2) break
+
+let e2=2*err
+
+if(e2>-dy){
+err-=dy
+x1+=sx
+}
+
+if(e2<dx){
+err+=dx
+y1+=sy
+}
+
+}
+
+}
+
+
+/*-----------------------------------------
+Función general de línea
+-----------------------------------------*/
+function drawLine(x1,y1,x2,y2,method){
+
+if(method==="dda")
+drawDDA(x1,y1,x2,y2)
+else
+drawBresenham(x1,y1,x2,y2)
+
+}
+
+
+/*-----------------------------------------
+Determina si forman triángulo
+Área ≠ 0
+-----------------------------------------*/
+function esTriangulo(x1,y1,x2,y2,x3,y3){
+
+let area =
+x1*(y2-y3)+
+x2*(y3-y1)+
+x3*(y1-y2)
+
+return area!==0
+
+}
+
+
+/*-----------------------------------------
+Obtiene datos del formulario
+-----------------------------------------*/
+function obtenerDatos(){
+
+let x1=parseFloat(document.getElementById("x1").value)
+let y1=parseFloat(document.getElementById("y1").value)
+
+let x2=parseFloat(document.getElementById("x2").value)
+let y2=parseFloat(document.getElementById("y2").value)
+
+let x3=parseFloat(document.getElementById("x3").value)
+let y3=parseFloat(document.getElementById("y3").value)
+
+return {x1,y1,x2,y2,x3,y3}
+
+}
+
+
+/*-----------------------------------------
+Dibuja todo
+-----------------------------------------*/
+function dibujar(){
+
+drawGrid()
+
+let data=obtenerDatos()
+
+if(Object.values(data).some(v=>isNaN(v))){
+document.getElementById("mensaje").innerText="Ingrese coordenadas válidas"
+return
+}
+
+let method=document.getElementById("method").value
+
+let A=cartesianToCanvas(data.x1,data.y1)
+let B=cartesianToCanvas(data.x2,data.y2)
+let C=cartesianToCanvas(data.x3,data.y3)
+
+/* puntos */
+
+drawPoint(ctx,A.x,A.y,8,"red")
+drawPoint(ctx,B.x,B.y,8,"red")
+drawPoint(ctx,C.x,C.y,8,"red")
+
+if(esTriangulo(data.x1,data.y1,data.x2,data.y2,data.x3,data.y3)){
+
+document.getElementById("mensaje").innerText="✔ Los puntos forman un triángulo"
+
+drawLine(A.x,A.y,B.x,B.y,method)
+drawLine(B.x,B.y,C.x,C.y,method)
+drawLine(C.x,C.y,A.x,A.y,method)
+
+}
+else{
+
+document.getElementById("mensaje").innerText="✖ Los puntos son colineales (no forman triángulo)"
+
+}
+
+}
+
+
+/*-----------------------------------------
+Limpia canvas
+-----------------------------------------*/
+function limpiar(){
+
+drawGrid()
+document.getElementById("mensaje").innerText=""
+
+}
+
+
+/* inicialización */
+
+drawGrid()
+
+</script>
+
+</body>
+</html>
