@@ -12,7 +12,7 @@ const SIZE = 4;
  size -> tamaño del punto
 -------------------------------------------------------*/
 function drawPoint(ctx, x, y, size) {
-    ctx.fillRect(x - size/2, y - size/2, size, size);
+    ctx.fillRect(x - size / 2, y - size / 2, size, size);
 }
 
 
@@ -33,33 +33,33 @@ function canvasToCartesiana(p1, height) {
  Dibuja los ejes X e Y y coloca marcas numéricas
  para identificar la posición en el plano.
 -------------------------------------------------------*/
-function drawAxes(){
+function drawAxes() {
 
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.strokeStyle="black";
+    ctx.strokeStyle = "black";
 
     // eje X
     ctx.beginPath();
-    ctx.moveTo(0, canvas.height/2);
-    ctx.lineTo(canvas.width, canvas.height/2);
+    ctx.moveTo(0, canvas.height / 2);
+    ctx.lineTo(canvas.width, canvas.height / 2);
     ctx.stroke();
 
     // eje Y
     ctx.beginPath();
-    ctx.moveTo(canvas.width/2,0);
-    ctx.lineTo(canvas.width/2,canvas.height);
+    ctx.moveTo(canvas.width / 2, 0);
+    ctx.lineTo(canvas.width / 2, canvas.height);
     ctx.stroke();
 
-    ctx.font="10px Arial";
-    ctx.fillStyle="black";
+    ctx.font = "10px Arial";
+    ctx.fillStyle = "black";
 
-    for(let i=0;i<=canvas.width;i+=50){
-        ctx.fillText(i-canvas.width/2, i, canvas.height/2+12);
+    for (let i = 0; i <= canvas.width; i += 50) {
+        ctx.fillText(i - canvas.width / 2, i, canvas.height / 2 + 12);
     }
 
-    for(let j=0;j<=canvas.height;j+=50){
-        ctx.fillText(canvas.height/2-j, canvas.width/2+5, j);
+    for (let j = 0; j <= canvas.height; j += 50) {
+        ctx.fillText(canvas.height / 2 - j, canvas.width / 2 + 5, j);
     }
 }
 
@@ -77,22 +77,22 @@ function drawAxes(){
  Ventaja: simple de implementar.
  Desventaja: usa números reales.
 -------------------------------------------------------*/
-function drawDDA(x1,y1,x2,y2,size){
+function drawDDA(x1, y1, x2, y2, size) {
 
-    let dx = x2-x1;
-    let dy = y2-y1;
+    let dx = x2 - x1;
+    let dy = y2 - y1;
 
     let steps = Math.max(Math.abs(dx), Math.abs(dy));
 
-    let xinc = dx/steps;
-    let yinc = dy/steps;
+    let xinc = dx / steps;
+    let yinc = dy / steps;
 
-    let x=x1;
-    let y=y1;
+    let x = x1;
+    let y = y1;
 
-    for(let i=0;i<=steps;i++){
+    for (let i = 0; i <= steps; i++) {
 
-        drawPoint(ctx,x,y,size);
+        drawPoint(ctx, x, y, size);
 
         x += xinc;
         y += yinc;
@@ -112,30 +112,30 @@ function drawDDA(x1,y1,x2,y2,size){
 
  Ventaja: más eficiente que DDA para gráficos raster.
 -------------------------------------------------------*/
-function drawBresenham(x1,y1,x2,y2,size){
+function drawBresenham(x1, y1, x2, y2, size) {
 
-    let dx = Math.abs(x2-x1);
-    let dy = Math.abs(y2-y1);
+    let dx = Math.abs(x2 - x1);
+    let dy = Math.abs(y2 - y1);
 
     let sx = (x1 < x2) ? 1 : -1;
     let sy = (y1 < y2) ? 1 : -1;
 
     let err = dx - dy;
 
-    while(true){
+    while (true) {
 
-        drawPoint(ctx,x1,y1,size);
+        drawPoint(ctx, x1, y1, size);
 
-        if(x1 === x2 && y1 === y2) break;
+        if (x1 === x2 && y1 === y2) break;
 
-        let e2 = 2*err;
+        let e2 = 2 * err;
 
-        if(e2 > -dy){
+        if (e2 > -dy) {
             err -= dy;
             x1 += sx;
         }
 
-        if(e2 < dx){
+        if (e2 < dx) {
             err += dx;
             y1 += sy;
         }
@@ -153,11 +153,10 @@ function drawBresenham(x1,y1,x2,y2,size){
 -------------------------------------------------------*/
 function drawLine(x1, y1, x2, y2, size, method) {
 
-    if(method === "dda"){
-        drawDDA(x1,y1,x2,y2,size);
-    }
-    else{
-        drawBresenham(x1,y1,x2,y2,size);
+    if (method === "dda") {
+        drawDDA(x1, y1, x2, y2, size);
+    } else {
+        drawBresenham(x1, y1, x2, y2, size);
     }
 }
 
@@ -169,11 +168,11 @@ function drawLine(x1, y1, x2, y2, size, method) {
 
  Si el área del triángulo es 0 -> los puntos son colineales.
 -------------------------------------------------------*/
-function verificaTriangulo(x1,y1,x2,y2,x3,y3){
+function verificaTriangulo(x1, y1, x2, y2, x3, y3) {
 
-    let area = x1*(y2-y3) +
-               x2*(y3-y1) +
-               x3*(y1-y2);
+    let area = x1 * (y2 - y3) +
+        x2 * (y3 - y1) +
+        x3 * (y1 - y2);
 
     return area !== 0;
 }
@@ -186,7 +185,7 @@ function verificaTriangulo(x1,y1,x2,y2,x3,y3){
  verifica si forman triángulo
  y dibuja los resultados en el canvas.
 -------------------------------------------------------*/
-function procesar(){
+function procesar() {
 
     drawAxes();
 
@@ -201,25 +200,24 @@ function procesar(){
 
     let method = document.getElementById("method").value;
 
-    drawPoint(ctx,x1,y1,SIZE);
-    drawPoint(ctx,x2,y2,SIZE);
-    drawPoint(ctx,x3,y3,SIZE);
+    drawPoint(ctx, x1, y1, SIZE);
+    drawPoint(ctx, x2, y2, SIZE);
+    drawPoint(ctx, x3, y3, SIZE);
 
-    let esTriangulo = verificaTriangulo(x1,y1,x2,y2,x3,y3);
+    let esTriangulo = verificaTriangulo(x1, y1, x2, y2, x3, y3);
 
-    if(esTriangulo){
-
-        document.getElementById("resultado").innerHTML =
-        "Los puntos SI forman un triángulo.";
-
-        drawLine(x1,y1,x2,y2,SIZE,method);
-        drawLine(x2,y2,x3,y3,SIZE,method);
-        drawLine(x3,y3,x1,y1,SIZE,method);
-    }
-    else{
+    if (esTriangulo) {
 
         document.getElementById("resultado").innerHTML =
-        "Los puntos NO forman un triángulo (son colineales).";
+            "Los puntos SI forman un triángulo.";
+
+        drawLine(x1, y1, x2, y2, SIZE, method);
+        drawLine(x2, y2, x3, y3, SIZE, method);
+        drawLine(x3, y3, x1, y1, SIZE, method);
+    } else {
+
+        document.getElementById("resultado").innerHTML =
+            "Los puntos NO forman un triángulo (son colineales).";
     }
 }
 
